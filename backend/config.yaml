@@ -1,0 +1,32 @@
+# Smart Beta Portfolio Optimizer Configurations
+
+# Asset Universe
+tickers:
+  - SPY  # S&P 500 ETF (US Equities)
+  - TLT  # 20+ Year Treasury Bond ETF (Long-Term US Bonds)
+  - GLD  # Gold Shares ETF (Commodities)
+  - QQQ  # Nasdaq 100 ETF (Growth Equities)
+  - EFA  # MSCI EAFE ETF (Developed Ex-US Equities)
+  - VNQ  # Real Estate ETF (US REITs)
+
+# Date Parameters
+dates:
+  start_date: "2015-01-01"
+  end_date: "2025-12-31"
+  backtest_start_date: "2023-01-01"  # Out-of-sample starts here
+
+# Optimization Settings
+optimization:
+  default_risk_free_rate: 0.04
+  default_risk_aversion: 1.0
+  covariance_method: "shrinkage"     # Options: "sample", "shrinkage"
+
+# FRED API Configuration
+fred:
+  series_id: "DGS3MO"                # 3-Month Treasury Constant Maturity Rate
+  fallback_ticker: "^IRX"            # 13-Week Treasury Bill Yahoo ticker
+
+# Storage Directories
+paths:
+  cache_dir: "data"
+  reports_dir: "reports"
