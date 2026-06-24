@@ -1,9 +1,50 @@
 import logging
 import numpy as np
 import pandas as pd
-from sklearn.covariance import LedoitWolf
 
 logger = logging.getLogger(__name__)
+
+def _ledoit_wolf_shrinkage(X, assume_centered=False):
+    """Estimate the asymptotically optimal Ledoit-Wolf shrinkage intensity."""
+    n_samples, n_features = X.shape
+    if n_features == 1:
+        return 0.0
+
+    if not assume_centered:
+        X = X - X.mean(axis=0)
+
+    X2 = X**2
+    emp_cov_trace = np.sum(X2, axis=0) / n_samples
+    mu = np.sum(emp_cov_trace) / n_features
+    
+    # Calculate sums of cross-products
+    beta_ = np.sum(X2.T @ X2)
+    delta_ = np.sum((X.T @ X) ** 2)
+    
+    delta_ /= n_samples**2
+    
+    # Calculate beta and delta coefficients
+    beta = 1.0 / (n_features * n_samples) * (beta_ / n_samples - delta_)
+    delta = delta_ - 2.0 * mu * emp_cov_trace.sum() + n_features * mu**2
+    delta /= n_features
+    
+    beta = min(beta, delta)
+    shrinkage = 0.0 if beta == 0 else beta / delta
+    return shrinkage
+
+def _ledoit_wolf_numpy(X, assume_centered=False):
+    """Estimate the shrunk Ledoit-Wolf covariance matrix using pure NumPy."""
+    n_samples, n_features = X.shape
+    if not assume_centered:
+        X = X - X.mean(axis=0)
+    
+    # Empirical covariance matrix
+    emp_cov = (X.T @ X) / n_samples
+    shrinkage = _ledoit_wolf_shrinkage(X, assume_centered=True)
+    
+    mu = np.trace(emp_cov) / n_features
+    shrunk_cov = (1.0 - shrinkage) * emp_cov + shrinkage * mu * np.identity(n_features)
+    return shrunk_cov, shrinkage
 
 def compute_returns(prices_df, method="log"):
     """
@@ -62,9 +103,9 @@ def get_covariance_matrix(returns, method="shrinkage", periods_per_year=252):
         
     if method == "shrinkage":
         try:
-            # Fit Ledoit-Wolf estimator
-            lw = LedoitWolf().fit(returns.values)
-            cov_array = lw.covariance_ * periods_per_year
+            # Fit local Ledoit-Wolf estimator
+            cov_array, _ = _ledoit_wolf_numpy(returns.values)
+            cov_array = cov_array * periods_per_year
             cov_df = pd.DataFrame(cov_array, index=returns.columns, columns=returns.columns)
             return cov_df
         except Exception as e:

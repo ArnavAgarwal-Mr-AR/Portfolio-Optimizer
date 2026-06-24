@@ -182,12 +182,12 @@ $$\text{subject to} \quad \sum w_i = 1, \quad w_i \ge 0$$
 ### 2. Risk Parity (Equal Risk Contribution)
 $$\min_x \quad \frac{1}{2} x^T \Sigma x - \sum_{i=1}^n \ln(x_i)$$
 $$\text{subject to} \quad x \ge 0$$
-*Once solved, optimal weights are normalized as $w_i = \frac{x_i}{\sum x_j}$. This guarantees that each asset's risk contribution $RC_i = w_i \frac{(\Sigma w)_i}{\sigma_p}$ is equal.*
+*Once solved, optimal weights are normalized as $\w_i = \frac{x_i}{\sum x_j}$. This guarantees that each asset's risk contribution $RC_i = w_i \frac{(\Sigma w)_i}{\sigma_p}$ is equal.*
 
 ### 3. Maximum Sharpe Ratio (Tangency Portfolio)
 $$\min_y \quad y^T \Sigma y$$
 $$\text{subject to} \quad (\mu - r_f \mathbf{1})^T y = 1, \quad y \ge 0$$
-*Solved via the Sharpe-Lintner convex transformation. Final weights are computed as $w_i = \frac{y_i}{\sum y_j}$.*
+*Solved via the Sharpe-Lintner convex transformation. Final weights are computed as $\w_i = \frac{y_i}{\sum y_j}$.*
 
 ### 4. Minimum Variance
 $$\min_w \quad w^T \Sigma w$$
