@@ -1,5 +1,4 @@
 import logging
-import cvxpy as cp
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
@@ -7,6 +6,13 @@ from scipy.optimize import minimize
 from optimizer.exceptions import OptimizationError
 
 logger = logging.getLogger(__name__)
+
+try:
+    import cvxpy as cp
+    HAS_CVXPY = True
+except ImportError:
+    HAS_CVXPY = False
+    logger.warning("CVXPY is not installed or could not be imported. Falling back to Scipy optimization solvers.")
 
 def mean_variance_optimize(mu, cov, target_return=None, risk_aversion=1.0):
     """
@@ -22,6 +28,9 @@ def mean_variance_optimize(mu, cov, target_return=None, risk_aversion=1.0):
     Returns:
     - pd.Series: optimal portfolio weights
     """
+    if not HAS_CVXPY:
+        return _mean_variance_scipy(mu, cov, target_return, risk_aversion)
+        
     n = len(mu)
     w = cp.Variable(n)
     portfolio_return = mu.values @ w
@@ -95,6 +104,9 @@ def min_variance_optimize(cov):
     Returns:
     - pd.Series: optimal portfolio weights
     """
+    if not HAS_CVXPY:
+        return _min_variance_scipy(cov)
+        
     n = cov.shape[0]
     w = cp.Variable(n)
     objective = cp.Minimize(cp.quad_form(w, cov.values))
@@ -148,6 +160,9 @@ def max_sharpe_optimize(mu, cov, rf):
     Returns:
     - pd.Series: optimal portfolio weights
     """
+    if not HAS_CVXPY:
+        return _max_sharpe_scipy(mu, cov, rf)
+        
     # Check if any asset return is higher than the risk-free rate
     if (mu - rf).max() <= 0:
         logger.warning(f"No asset has annualized return above the risk-free rate ({rf:.4f}). "
