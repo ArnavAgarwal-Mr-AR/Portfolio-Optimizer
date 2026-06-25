@@ -46,3 +46,6 @@ reports/
 *.njsproj
 *.sln
 *.swp
+
+.vercel
+.env*

@@ -48,12 +48,26 @@ class Config:
         
         # Path settings
         paths_cfg = self.config_data.get("paths", {})
-        self.cache_dir = PROJECT_ROOT / paths_cfg.get("cache_dir", "data")
-        self.reports_dir = PROJECT_ROOT / paths_cfg.get("reports_dir", "reports")
         
-        # Ensure directories exist
-        self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.reports_dir.mkdir(parents=True, exist_ok=True)
+        # In Vercel serverless environments, the filesystem is read-only except for /tmp
+        is_vercel = os.getenv("VERCEL") == "1"
+        if is_vercel:
+            self.cache_dir = Path("/tmp") / paths_cfg.get("cache_dir", "data")
+            self.reports_dir = Path("/tmp") / paths_cfg.get("reports_dir", "reports")
+        else:
+            self.cache_dir = PROJECT_ROOT / paths_cfg.get("cache_dir", "data")
+            self.reports_dir = PROJECT_ROOT / paths_cfg.get("reports_dir", "reports")
+        
+        # Ensure directories exist (handling read-only permissions gracefully)
+        try:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            print(f"Warning: Could not create cache directory {self.cache_dir}. Error: {e}")
+            
+        try:
+            self.reports_dir.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            print(f"Warning: Could not create reports directory {self.reports_dir}. Error: {e}")
 
     def _get_tickers(self):
         env_tickers = os.getenv("PORTFOLIO_TICKERS")

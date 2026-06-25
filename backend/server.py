@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 # Ensure local library is discoverable
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
+sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.abspath(__file__))))
 
 from optimizer.config import config
 from optimizer.data_pipeline import fetch_prices, fetch_risk_free_rate, align_data
